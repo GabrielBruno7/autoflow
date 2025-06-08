@@ -18,6 +18,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('/healthz', function () {
+    return response()->json(['status' => 'OK'], 200);
+});
+
 Route::get('/hello', function () {
     return response()->json(['message' => 'Hello, World!']);
 });
