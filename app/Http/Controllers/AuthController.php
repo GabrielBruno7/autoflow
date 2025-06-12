@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -23,11 +24,9 @@ class AuthController extends Controller
                 'password' => Hash::make($request->password),
             ]);
 
-            $token = $user->createToken('meu-token')->plainTextToken;
-
             return response()->json([
                 'user' => $user,
-                'token' => $token
+                'token' => $user->createToken('register')->plainTextToken
             ], 201);
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 500);
@@ -43,11 +42,12 @@ class AuthController extends Controller
                 return response()->json(['message' => 'Credenciais inválidas'], 401);
             }
 
-            $token = $user->createToken('meu-token')->plainTextToken;
-
-            return response()->json(['token' => $token], 200);
+            return response()->json([
+                'token' => $user->createToken('login')->plainTextToken
+            ], 200);
         } catch (\Throwable $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            Log::error('Erro ao autenticar usuário', ['error' => $e->getMessage()]);
+            return response()->json(['message' => self::DEFAULT_ERROR_MESSAGE], 500);
         }
     }
 }
