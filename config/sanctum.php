@@ -21,6 +21,12 @@ return [
         Sanctum::currentApplicationUrlWithPort()
     ))),
 
+    'api' => [
+        \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class, // se for SPA
+        'throttle:api',
+        \Illuminate\Routing\Middleware\SubstituteBindings::class,
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Sanctum Guards
