@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\User\User;
+use App\Infra\UserDb;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use App\Models\User as AuthUser;
 use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
@@ -18,7 +20,7 @@ class AuthController extends Controller
                 'password' => 'required|string|min:6|confirmed',
             ]);
 
-            $user = User::create([
+            $user = AuthUser::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
@@ -36,17 +38,17 @@ class AuthController extends Controller
     public function actionLogin(Request $request)
     {
         try {
-            $user = User::where('email', $request->email)->first();
+            $user = (new User(new UserDb()))
+                ->setEmail($request->email)
+                ->loadUserByEmail()
+                ->checkPassword($request->password)
+                ->generateToken()
+            ;
 
-            if (!$user || !Hash::check($request->password, $user->password)) {
-                return response()->json(['message' => 'Credenciais inválidas'], 401);
-            }
-
-            return response()->json([
-                'token' => $user->createToken('login')->plainTextToken
-            ], 200);
+            return response()->json(['token' => $user->getToken()], 200);
         } catch (\Throwable $e) {
             Log::error('Erro ao autenticar usuário', ['error' => $e->getMessage()]);
+            dd($e);
             return response()->json(['message' => self::DEFAULT_ERROR_MESSAGE], 500);
         }
     }
