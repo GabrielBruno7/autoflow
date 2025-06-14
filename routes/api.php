@@ -25,3 +25,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+use Illuminate\Support\Facades\DB;
+
+Route::get('/db-test', function () {
+    try {
+        DB::connection()->getPdo();
+        return '✅ Conexão com o banco bem-sucedida!';
+    } catch (\Exception $e) {
+        return '❌ Erro na conexão: ' . $e->getMessage();
+    }
+});
